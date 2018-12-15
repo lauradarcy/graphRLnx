@@ -87,7 +87,6 @@ class graphRLnx(gym.Env):
             raise ValueError('this action violates the DAG property')
         self.observation = nx.to_numpy_matrix(self.graph).astype(int)
         if not self.observation_space.contains(self.observation):
-            print(self.observation)
             self.graph.remove_edges_from(new_edge)
             self.observation = nx.to_numpy_matrix(self.graph).astype(int)
             raise ValueError('this action makes a duplicate edge')
