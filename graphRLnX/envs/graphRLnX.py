@@ -2,7 +2,7 @@ import gym
 from gym import spaces
 from gym.utils import seeding
 import numpy as np
-import networkX as nx
+import networkx as nx
 
 
 class graphRLnX(gym.Env):
@@ -18,8 +18,7 @@ class graphRLnX(gym.Env):
     def __init__(self, network_size=10, input_nodes=3):
         self.network_size = network_size
         self.input_nodes = input_nodes
-        self.graph = Graph()
-        self.graph.set_fast_edge_removal(True)
+        self.graph = nx.DiGraph
         self.graph.add_vertex(self.network_size)
 
         self.action_space = spaces.Tuple((spaces.Discrete(self.network_size), spaces.Discrete(self.network_size)))
