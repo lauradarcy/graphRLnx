@@ -1,1 +1,1 @@
-from graphRLnX.envs.graphRLnX import graphRLnX
+from graphRLnx.envs.graphRLnx import graphRLnx

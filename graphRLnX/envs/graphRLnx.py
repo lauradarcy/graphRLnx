@@ -5,7 +5,7 @@ import numpy as np
 import networkx as nx
 
 
-class graphRLnX(gym.Env):
+class graphRLnx(gym.Env):
     """
     will have fixed action space, but not all actions are valid within each state
     step function should have a function that tests if the chosen action is valid
@@ -18,37 +18,36 @@ class graphRLnX(gym.Env):
     def __init__(self, network_size=10, input_nodes=3):
         self.network_size = network_size
         self.input_nodes = input_nodes
-        self.graph = nx.DiGraph
-        self.graph.add_vertex(self.network_size)
+        self.graph = nx.DiGraph()
+        self.graph.add_nodes_from(range(self.network_size))
 
         self.action_space = spaces.Tuple((spaces.Discrete(self.network_size), spaces.Discrete(self.network_size)))
         self.observation_space = spaces.MultiDiscrete(np.full((self.network_size, self.network_size), 2))
         self.time_step = 0
-        self.observation = adjacency(self.graph).toarray().astype(int)
+        self.observation = nx.to_numpy_matrix(self.graph).astype(int)
         self.seed_value = self.seed()
         self.true_graph = self.create_true_graph()
         self.reset()
 
     def create_true_graph(self):
-        final_workflow = Graph()
-        final_workflow.add_vertex(self.network_size)
+        final_workflow = nx.DiGraph()
+        final_workflow.add_nodes_from(range(self.network_size))
         i = 0
-        while max([shortest_distance(final_workflow, x, (self.network_size - 1)) for x in
-                   final_workflow.get_vertices()]) > 100:
+        while nx.ancestors(final_workflow,self.network_size-1) != set(range(self.network_size)):
             i += 1
             if i > 10000:
                 raise RuntimeError('generating graph took too long')
             valid_source_nodes = [index for index, in_degree in
-                                  enumerate(final_workflow.get_in_degrees(final_workflow.get_vertices())) if
+                                  final_workflow.in_degree() if
                                   ((in_degree > 0 or index < self.input_nodes) and index < (self.network_size - 1))]
-            valid_to_nodes = [index for index in final_workflow.get_vertices() if (index >= self.input_nodes)]
-            new_edge = final_workflow.add_edge(self.np_random.choice(valid_source_nodes),
-                                               self.np_random.choice(valid_to_nodes))
-            if not is_DAG(final_workflow):
-                final_workflow.remove_edge(new_edge)
-            observation = adjacency(final_workflow).toarray().astype(int)
+            valid_to_nodes = [index for index in range(self.input_nodes, self.network_size)]
+            new_edge = [(self.np_random.choice(valid_source_nodes), self.np_random.choice(valid_to_nodes))]
+            final_workflow.add_edges_from(new_edge)
+            if not nx.algorithms.dag.is_directed_acyclic_graph(final_workflow):
+                final_workflow.remove_edges_from(new_edge)
+            observation = nx.to_numpy_matrix(final_workflow).astype(int)
             if not self.observation_space.contains(observation):
-                final_workflow.remove_edge(new_edge)
+                final_workflow.remove_edges_from(new_edge)
         return final_workflow
 
     def render(self, mode='human'):
