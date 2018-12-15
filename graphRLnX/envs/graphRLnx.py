@@ -3,6 +3,7 @@ from gym import spaces
 from gym.utils import seeding
 import numpy as np
 import networkx as nx
+import matplotlib.pyplot as plt
 
 
 class graphRLnx(gym.Env):
@@ -54,23 +55,17 @@ class graphRLnx(gym.Env):
         if mode == 'graph':
             # return graphtools graph object
             return self.graph
-        elif mode == 'interactive':
-            interactive_window(self.graph)
         elif mode == 'human':
-            filename = "./renders/render" + str(self.time_step) + ".png"
-            graph_draw(self.graph, vertex_text=self.graph.vertex_index, vertex_font_size=18,
-                       output_size=(1000, 1000), output=filename)
+            nx.draw(self.graph, with_labels=True, font_weight='bold')
+            plt.show()
 
     def render_truth(self, mode='human'):
         if mode == 'graph':
             # return graphtools graph object
             return self.true_graph
-        elif mode == 'interactive':
-            interactive_window(self.true_graph)
         elif mode == 'human':
-            filename = "./renders/TrueGraphSeed" + str(self.seed_value) + ".png"
-            graph_draw(self.true_graph, vertex_text=self.true_graph.vertex_index, vertex_font_size=18,
-                       output_size=(1000, 1000), output=filename)
+            nx.draw(self.true_graph, with_labels=True, font_weight='bold')
+            plt.show()
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -81,28 +76,30 @@ class graphRLnx(gym.Env):
         reward = 0
         assert self.action_space.contains(action)
         valid_source_nodes = [index for index, in_degree in
-                              enumerate(self.graph.get_in_degrees(self.graph.get_vertices())) if
+                              self.graph.in_degree() if
                               ((in_degree > 0 or index < self.input_nodes) and index < (self.network_size - 1))]
         if action[0] not in valid_source_nodes:
             raise ValueError('this action does not have a valid from node')
-        new_edge = self.graph.add_edge(action[0], action[1])
-        if not is_DAG(self.graph):
-            self.graph.remove_edge(new_edge)
+        new_edge = [(action[0], action[1])]
+        self.graph.add_edges_from(new_edge)
+        if not nx.algorithms.dag.is_directed_acyclic_graph(self.graph):
+            self.graph.remove_edges_from(new_edge)
             raise ValueError('this action violates the DAG property')
-        self.observation = adjacency(self.graph).toarray().astype(int)
+        self.observation = nx.to_numpy_matrix(self.graph).astype(int)
         if not self.observation_space.contains(self.observation):
             print(self.observation)
-            self.graph.remove_edge(new_edge)
-            self.observation = adjacency(self.graph).toarray().astype(int)
+            self.graph.remove_edges_from(new_edge)
+            self.observation = nx.to_numpy_matrix(self.graph).astype(int)
             raise ValueError('this action makes a duplicate edge')
-        if isomorphism(self.graph, self.true_graph):
+        if nx.is_isomorphic(self.graph, self.true_graph):
             reward = 1
             done = 1
         self.time_step += 1
         return self.observation, reward, done, {"time_step": self.time_step}
 
     def reset(self):
-        self.graph.clear_edges()
+        all_edges = list(self.graph.edges())
+        self.graph.remove_edges_from(all_edges)
         self.time_step = 0
-        self.observation = adjacency(self.graph).toarray()
+        self.observation = nx.to_numpy_matrix(self.graph).astype(int)
         return self.observation
