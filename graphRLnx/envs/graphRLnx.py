@@ -34,7 +34,7 @@ class graphRLnx(gym.Env):
         final_workflow = nx.DiGraph()
         final_workflow.add_nodes_from(range(self.network_size))
         i = 0
-        while nx.ancestors(final_workflow,self.network_size-1) != set(range(self.network_size)):
+        while nx.ancestors(final_workflow,self.network_size-1) != set(range(self.network_size-1)):
             i += 1
             if i > 10000:
                 raise RuntimeError('generating graph took too long')
