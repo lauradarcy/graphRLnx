@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(name='graphRLnx',
-	version='0.0.2',
+	version='0.0.3',
 	author='Laura D\'Arcy',
 	author_email='luludarcy@gmail.com',
 	description='a directed acyclic graph environment for use with openAI gym, with a networkX backend',
