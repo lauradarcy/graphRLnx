@@ -1,6 +1,6 @@
 # graphRL with NetworkX
 
-[![PyPI version](https://badge.fury.io/py/graphRL.svg)](https://badge.fury.io/py/graphRL)
+
 
 This repository contains a PIP package which is an OpenAI environment for simulating directed acyclic graphs for workflow scheduling, using a NetworkX backend.
 
@@ -10,14 +10,14 @@ This repository contains a PIP package which is an OpenAI environment for simula
 install this package via
 
 ```bash
-pip3 install graphRLnX
+pip3 install graphRLnx
 ```
 
 ## Usage
 
 ```python
 import gym
-import graphRLnX
+import graphRLnx
 
 env = gym.make('graphRL-v0')
 ```
